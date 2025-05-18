@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevTools Hub</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#4f46e5',secondary:'#38bdf8'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Inter', sans-serif;
+background-color: #f9fafb;
+}
+.task-progress::-webkit-progress-bar {
+background-color: #e5e7eb;
+border-radius: 9999px;
+}
+.task-progress::-webkit-progress-value {
+border-radius: 9999px;
+}
+.high-priority::-webkit-progress-value {
+background-color: #ef4444;
+}
+.medium-priority::-webkit-progress-value {
+background-color: #f59e0b;
+}
+.low-priority::-webkit-progress-value {
+background-color: #10b981;
+}
+.sticky-note {
+transition: transform 0.2s;
+}
+.sticky-note:hover {
+transform: translateY(-5px);
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.timer-display {
+font-variant-numeric: tabular-nums;
+}
+.custom-checkbox {
+position: relative;
+cursor: pointer;
+}
+.custom-checkbox input {
+position: absolute;
+opacity: 0;
+cursor: pointer;
+}
+.checkmark {
+position: absolute;
+top: 0;
+left: 0;
+height: 20px;
+width: 20px;
+background-color: white;
+border: 2px solid #d1d5db;
+border-radius: 4px;
+transition: all 0.2s;
+}
+.custom-checkbox:hover .checkmark {
+border-color: #4f46e5;
+}
+.custom-checkbox input:checked ~ .checkmark {
+background-color: #4f46e5;
+border-color: #4f46e5;
+}
+.checkmark:after {
+content: "";
+position: absolute;
+display: none;
+}
+.custom-checkbox input:checked ~ .checkmark:after {
+display: block;
+}
+.custom-checkbox .checkmark:after {
+left: 6px;
+top: 2px;
+width: 5px;
+height: 10px;
+border: solid white;
+border-width: 0 2px 2px 0;
+transform: rotate(45deg);
+}
+.custom-switch {
+position: relative;
+display: inline-block;
+width: 44px;
+height: 24px;
+}
+.custom-switch input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+.switch-slider {
+position: absolute;
+cursor: pointer;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: #e5e7eb;
+transition: .4s;
+border-radius: 34px;
+}
+.switch-slider:before {
+position: absolute;
+content: "";
+height: 18px;
+width: 18px;
+left: 3px;
+bottom: 3px;
+background-color: white;
+transition: .4s;
+border-radius: 50%;
+}
+input:checked + .switch-slider {
+background-color: #4f46e5;
+}
+input:checked + .switch-slider:before {
+transform: translateX(20px);
+}
+.custom-range {
+-webkit-appearance: none;
+width: 100%;
+height: 6px;
+border-radius: 5px;
+background: #e5e7eb;
+outline: none;
+}
+.custom-range::-webkit-slider-thumb {
+-webkit-appearance: none;
+appearance: none;
+width: 18px;
+height: 18px;
+border-radius: 50%;
+background: #4f46e5;
+cursor: pointer;
+border: 2px solid white;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.custom-range::-moz-range-thumb {
+width: 18px;
+height: 18px;
+border-radius: 50%;
+background: #4f46e5;
+cursor: pointer;
+border: 2px solid white;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.markdown-preview {
+overflow-wrap: break-word;
+}
+.markdown-preview h1 {
+font-size: 1.5rem;
+font-weight: bold;
+margin-top: 1rem;
+margin-bottom: 0.5rem;
+}
+.markdown-preview h2 {
+font-size: 1.25rem;
+font-weight: bold;
+margin-top: 1rem;
+margin-bottom: 0.5rem;
+}
+.markdown-preview p {
+margin-bottom: 0.5rem;
+}
+.markdown-preview ul {
+list-style-type: disc;
+padding-left: 1.5rem;
+margin-bottom: 0.5rem;
+}
+.markdown-preview code {
+font-family: monospace;
+background-color: #f3f4f6;
+padding: 0.1rem 0.2rem;
+border-radius: 4px;
+}
+.regex-match {
+background-color: rgba(79, 70, 229, 0.2);
+border-radius: 2px;
+padding: 0 2px;
+}
+</style>
+</head>
+<body>
+<div class="min-h-screen flex flex-col">
+<!-- Header -->
+<header class="bg-white shadow-sm">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between h-16">
+<div class="flex items-center">
+<div class="flex-shrink-0 flex items-center">
+<span class="text-2xl font-['Pacifico'] text-primary">DevTools</span>
+</div>
+<nav class="ml-8 flex space-x-6">
+<a href="#" class="border-b-2 border-primary text-gray-900 px-1 pt-1 text-sm font-medium">Dashboard</a>
+<a href="Manage-Your-Projects.html" data-readdy="true" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Projects</a>
+<a href="#" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Calendar</a>
+<a href="#" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Settings</a>
+</nav>
+</div>
+<div class="flex items-center">
+<div class="relative">
+<div class="flex items-center bg-gray-100 rounded-full px-3 py-1.5 w-64">
+<div class="w-5 h-5 flex items-center justify-center text-gray-400">
+<i class="ri-search-line"></i>
+</div>
+<input type="text" placeholder="Search..." class="ml-2 bg-transparent border-none text-sm text-gray-700 focus:outline-none w-full">
+</div>
+</div>
+<div class="ml-4 flex items-center">
+<label class="custom-switch mr-4">
+<input type="checkbox" id="darkModeToggle">
+<span class="switch-slider"></span>
+</label>
+<button type="button" class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500">
+<i class="ri-notification-3-line"></i>
+</button>
+<div class="ml-3 relative">
+<div class="flex items-center">
+<button type="button" class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+<span class="text-xs font-medium">JS</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Dashboard Header -->
+<div class="mb-8">
+<h1 class="text-2xl font-semibold text-gray-900">Productivity Dashboard</h1>
+<p class="mt-1 text-sm text-gray-500">May 18, 2025 - Sunday</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Task Management Section -->
+<div class="lg:col-span-1 bg-white rounded shadow-sm p-6">
+<div class="flex justify-between items-center mb-5">
+<h2 class="text-lg font-medium text-gray-900">Task List</h2>
+<button class="flex items-center justify-center w-8 h-8 rounded-button bg-primary text-white !rounded-button">
+<i class="ri-add-line"></i>
+</button>
+</div>
+<div class="space-y-4">
+<!-- High Priority Task -->
+<div class="flex items-start">
+<label class="custom-checkbox mt-1 mr-3">
+<input type="checkbox">
+<span class="checkmark"></span>
+</label>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="text-sm font-medium text-gray-900">Complete API documentation</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">High</span>
+</div>
+<p class="mt-1 text-xs text-gray-500">Due: May 20, 2025</p>
+<div class="mt-2">
+<progress class="task-progress high-priority w-full h-1.5" value="75" max="100"></progress>
+</div>
+</div>
+</div>
+<!-- Medium Priority Task -->
+<div class="flex items-start">
+<label class="custom-checkbox mt-1 mr-3">
+<input type="checkbox">
+<span class="checkmark"></span>
+</label>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="text-sm font-medium text-gray-900">Refactor authentication module</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Medium</span>
+</div>
+<p class="mt-1 text-xs text-gray-500">Due: May 25, 2025</p>
+<div class="mt-2">
+<progress class="task-progress medium-priority w-full h-1.5" value="45" max="100"></progress>
+</div>
+</div>
+</div>
+<!-- Low Priority Task -->
+<div class="flex items-start">
+<label class="custom-checkbox mt-1 mr-3">
+<input type="checkbox">
+<span class="checkmark"></span>
+</label>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="text-sm font-medium text-gray-900">Update project dependencies</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Low</span>
+</div>
+<p class="mt-1 text-xs text-gray-500">Due: June 2, 2025</p>
+<div class="mt-2">
+<progress class="task-progress low-priority w-full h-1.5" value="20" max="100"></progress>
+</div>
+</div>
+</div>
+<!-- Completed Task -->
+<div class="flex items-start opacity-60">
+<label class="custom-checkbox mt-1 mr-3">
+<input type="checkbox" checked>
+<span class="checkmark"></span>
+</label>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="text-sm font-medium text-gray-900 line-through">Setup CI/CD pipeline</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Done</span>
+</div>
+<p class="mt-1 text-xs text-gray-500">Completed: May 15, 2025</p>
+<div class="mt-2">
+<progress class="task-progress w-full h-1.5" value="100" max="100" style="background-color: #e5e7eb;"></progress>
+</div>
+</div>
+</div>
+<!-- Add more tasks -->
+<div class="flex items-start">
+<label class="custom-checkbox mt-1 mr-3">
+<input type="checkbox">
+<span class="checkmark"></span>
+</label>
+<div class="flex-1">
+<div class="flex justify-between">
+<h3 class="text-sm font-medium text-gray-900">Implement user feedback system</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Medium</span>
+</div>
+<p class="mt-1 text-xs text-gray-500">Due: May 28, 2025</p>
+<div class="mt-2">
+<progress class="task-progress medium-priority w-full h-1.5" value="30" max="100"></progress>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Productivity Tools Grid -->
+<div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Pomodoro Timer -->
+<div class="bg-white rounded shadow-sm p-6">
+<h2 class="text-lg font-medium text-gray-900 mb-4">Pomodoro Timer</h2>
+<div class="flex flex-col items-center">
+<div class="timer-display text-5xl font-semibold text-gray-900 mb-6" id="timerDisplay">25:00</div>
+<div class="flex space-x-4 mb-6">
+<button id="startTimer" class="px-4 py-2 bg-primary text-white font-medium rounded-button !rounded-button whitespace-nowrap">Start</button>
+<button id="resetTimer" class="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-button !rounded-button whitespace-nowrap">Reset</button>
+</div>
+<div class="w-full">
+<div class="flex justify-between text-sm text-gray-500 mb-2">
+<span>Focus Time</span>
+<span id="focusTimeValue">25 min</span>
+</div>
+<input type="range" id="focusTimeRange" min="5" max="60" value="25" step="5" class="custom-range w-full">
+</div>
+<div class="mt-4 flex items-center justify-between w-full">
+<span class="text-sm text-gray-500">Sessions: <span id="sessionCount">0</span></span>
+<div class="flex items-center">
+<span class="text-sm text-gray-500 mr-2">Sound</span>
+<label class="custom-switch">
+<input type="checkbox" checked>
+<span class="switch-slider"></span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Notes -->
+<div class="bg-white rounded shadow-sm p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-medium text-gray-900">Sticky Notes</h2>
+<button id="addNote" class="flex items-center justify-center w-8 h-8 rounded-button bg-primary text-white !rounded-button">
+<i class="ri-add-line"></i>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-4" id="notesContainer">
+<div class="sticky-note p-3 rounded bg-yellow-100 shadow-sm">
+<div class="flex justify-between mb-1">
+<span class="text-xs text-gray-500">May 16</span>
+<button class="text-gray-400 hover:text-gray-600">
+<i class="ri-delete-bin-line text-xs"></i>
+</button>
+</div>
+<p class="text-sm text-gray-800">Review pull request #342 for the authentication service</p>
+</div>
+<div class="sticky-note p-3 rounded bg-blue-100 shadow-sm">
+<div class="flex justify-between mb-1">
+<span class="text-xs text-gray-500">May 17</span>
+<button class="text-gray-400 hover:text-gray-600">
+<i class="ri-delete-bin-line text-xs"></i>
+</button>
+</div>
+<p class="text-sm text-gray-800">Schedule meeting with design team about new UI components</p>
+</div>
+<div class="sticky-note p-3 rounded bg-green-100 shadow-sm">
+<div class="flex justify-between mb-1">
+<span class="text-xs text-gray-500">May 18</span>
+<button class="text-gray-400 hover:text-gray-600">
+<i class="ri-delete-bin-line text-xs"></i>
+</button>
+</div>
+<p class="text-sm text-gray-800">Optimize database queries for user dashboard</p>
+</div>
+<div class="sticky-note p-3 rounded bg-purple-100 shadow-sm">
+<div class="flex justify-between mb-1">
+<span class="text-xs text-gray-500">May 18</span>
+<button class="text-gray-400 hover:text-gray-600">
+<i class="ri-delete-bin-line text-xs"></i>
+</button>
+</div>
+<p class="text-sm text-gray-800">Research WebAssembly for potential performance improvements</p>
+</div>
+</div>
+</div>
+<!-- Markdown Editor -->
+<div class="bg-white rounded shadow-sm p-6">
+<h2 class="text-lg font-medium text-gray-900 mb-4">Markdown Notes</h2>
+<div class="flex space-x-2 mb-3">
+<button class="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded">
+<i class="ri-bold-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded">
+<i class="ri-italic-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded">
+<i class="ri-list-unordered-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded">
+<i class="ri-list-ordered-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded">
+<i class="ri-link-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded">
+<i class="ri-code-line"></i>
+</button>
+</div>
+<div class="flex flex-col md:flex-row gap-4">
+<div class="flex-1">
+<textarea id="markdownInput" class="w-full h-40 p-3 border border-gray-200 rounded text-sm" placeholder="Write your markdown here...">## Project Notes
+* Implement caching for API responses
+* Add unit tests for auth module
+* Fix responsive layout issues on mobile
+The `UserService` needs refactoring to support the new requirements.
+</textarea>
+</div>
+<div class="flex-1 markdown-preview bg-gray-50 p-3 rounded h-40 overflow-y-auto text-sm">
+<h2>Project Notes</h2>
+<ul>
+<li>Implement caching for API responses</li>
+<li>Add unit tests for auth module</li>
+<li>Fix responsive layout issues on mobile</li>
+</ul>
+<p>The <code>UserService</code> needs refactoring to support the new requirements.</p>
+</div>
+</div>
+<div class="mt-3 flex justify-between items-center text-xs text-gray-500">
+<div>Words: <span id="wordCount">30</span></div>
+<div class="flex space-x-3">
+<button class="text-primary hover:text-primary-dark">Save</button>
+<button class="text-gray-600 hover:text-gray-800">Export</button>
+</div>
+</div>
+</div>
+<!-- Calendar View -->
+<div class="bg-white rounded shadow-sm p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-medium text-gray-900">Weekly Calendar</h2>
+<div class="flex items-center space-x-2">
+<button class="p-1 text-gray-500 hover:text-gray-900">
+<i class="ri-arrow-left-s-line"></i>
+</button>
+<span class="text-sm font-medium">May 18-24, 2025</span>
+<button class="p-1 text-gray-500 hover:text-gray-900">
+<i class="ri-arrow-right-s-line"></i>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<div class="grid grid-cols-8 gap-1 text-xs mb-1">
+<div class="text-gray-400"></div>
+<div class="text-center font-medium text-gray-500">Sun</div>
+<div class="text-center font-medium text-gray-500">Mon</div>
+<div class="text-center font-medium text-gray-500">Tue</div>
+<div class="text-center font-medium text-gray-500">Wed</div>
+<div class="text-center font-medium text-gray-500">Thu</div>
+<div class="text-center font-medium text-gray-500">Fri</div>
+<div class="text-center font-medium text-gray-500">Sat</div>
+</div>
+<div class="grid grid-cols-8 gap-1 text-xs">
+<div class="text-right pr-1 text-gray-400">9am</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-primary bg-opacity-20 h-6 rounded text-xs p-1">Stand-up</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+</div>
+<div class="grid grid-cols-8 gap-1 text-xs">
+<div class="text-right pr-1 text-gray-400">10am</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-primary h-6 rounded text-white text-xs p-1">API Review</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+</div>
+<div class="grid grid-cols-8 gap-1 text-xs">
+<div class="text-right pr-1 text-gray-400">11am</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-secondary h-6 rounded text-white text-xs p-1">Design</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+</div>
+<div class="grid grid-cols-8 gap-1 text-xs">
+<div class="text-right pr-1 text-gray-400">12pm</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+</div>
+<div class="grid grid-cols-8 gap-1 text-xs">
+<div class="text-right pr-1 text-gray-400">1pm</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-yellow-400 h-6 rounded text-white text-xs p-1">Sprint Plan</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+</div>
+<div class="grid grid-cols-8 gap-1 text-xs">
+<div class="text-right pr-1 text-gray-400">2pm</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-primary h-6 rounded text-white text-xs p-1">Code Review</div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+<div class="bg-gray-50 h-6 rounded"></div>
+</div>
+</div>
+<div class="mt-3 flex justify-end">
+<button class="px-3 py-1 bg-primary text-white text-xs rounded-button !rounded-button whitespace-nowrap">Add Event</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Developer Tools Section -->
+<div class="mt-8">
+<h2 class="text-xl font-semibold text-gray-900 mb-5">Developer Tools</h2>
+<div class="bg-white rounded shadow-sm">
+<div class="border-b">
+<div class="px-1 py-1 flex space-x-1">
+<button id="jsonTabBtn" class="px-4 py-2 text-sm font-medium text-primary bg-primary bg-opacity-10 rounded-full">JSON Viewer</button>
+<button id="regexTabBtn" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 rounded-full">Regex Tester</button>
+<button id="snippetTabBtn" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 rounded-full">Snippet Manager</button>
+<button id="timezoneTabBtn" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 rounded-full">Time Zone Converter</button>
+</div>
+</div>
+<!-- Tab Content -->
+<div class="p-6">
+<!-- JSON Viewer Tab -->
+<div id="jsonTab" class="block">
+<div class="flex mb-4">
+<div class="flex-1">
+<div class="flex space-x-2 mb-2">
+<button class="px-3 py-1 bg-primary text-white text-xs rounded-button !rounded-button whitespace-nowrap">Format</button>
+<button class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-button !rounded-button whitespace-nowrap">Minify</button>
+<button class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-button !rounded-button whitespace-nowrap">Copy</button>
+</div>
+<textarea id="jsonInput" class="w-full h-64 p-3 font-mono text-sm border border-gray-200 rounded" placeholder="Paste your JSON here...">{
+"user": {
+"id": 12345,
+"name": "Emily Johnson",
+"email": "emily.johnson@example.com",
+"roles": ["developer", "admin"],
+"settings": {
+"theme": "light",
+"notifications": true,
+"language": "en-US"
+}
+},
+"projects": [
+{
+"id": "proj-001",
+"name": "API Gateway",
+"status": "active",
+"members": 5,
+"tasks": 23,
+"completion": 68
+},
+{
+"id": "proj-002",
+"name": "User Dashboard",
+"status": "planning",
+"members": 3,
+"tasks": 12,
+"completion": 25
+}
+]
+}</textarea>
+</div>
+<div class="flex-1 ml-4">
+<div class="bg-gray-50 h-64 p-3 font-mono text-sm rounded overflow-auto">
+<div class="pl-4 border-l-2 border-gray-200">
+<span class="text-gray-500">{</span>
+<div class="pl-4 border-l-2 border-gray-200">
+<span class="text-primary">"user"</span><span class="text-gray-500">: {</span>
+<div class="pl-4 border-l-2 border-gray-200">
+<div><span class="text-primary">"id"</span><span class="text-gray-500">:</span> <span class="text-green-600">12345</span>,</div>
+<div><span class="text-primary">"name"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"Emily Johnson"</span>,</div>
+<div><span class="text-primary">"email"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"emily.johnson@example.com"</span>,</div>
+<div>
+<span class="text-primary">"roles"</span><span class="text-gray-500">: [</span>
+<span class="text-yellow-600">"developer"</span>, <span class="text-yellow-600">"admin"</span>
+<span class="text-gray-500">]</span>,
+</div>
+<div>
+<span class="text-primary">"settings"</span><span class="text-gray-500">: {</span>
+<div class="pl-4 border-l-2 border-gray-200">
+<div><span class="text-primary">"theme"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"light"</span>,</div>
+<div><span class="text-primary">"notifications"</span><span class="text-gray-500">:</span> <span class="text-blue-600">true</span>,</div>
+<div><span class="text-primary">"language"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"en-US"</span></div>
+</div>
+<span class="text-gray-500">}</span>
+</div>
+</div>
+<span class="text-gray-500">}</span>,
+</div>
+<div>
+<span class="text-primary">"projects"</span><span class="text-gray-500">: [</span>
+<div class="pl-4 border-l-2 border-gray-200">
+<span class="text-gray-500">{</span>
+<div class="pl-4 border-l-2 border-gray-200">
+<div><span class="text-primary">"id"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"proj-001"</span>,</div>
+<div><span class="text-primary">"name"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"API Gateway"</span>,</div>
+<div><span class="text-primary">"status"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"active"</span>,</div>
+<div><span class="text-primary">"members"</span><span class="text-gray-500">:</span> <span class="text-green-600">5</span>,</div>
+<div><span class="text-primary">"tasks"</span><span class="text-gray-500">:</span> <span class="text-green-600">23</span>,</div>
+<div><span class="text-primary">"completion"</span><span class="text-gray-500">:</span> <span class="text-green-600">68</span></div>
+</div>
+<span class="text-gray-500">}</span>,
+<span class="text-gray-500">{</span>
+<div class="pl-4 border-l-2 border-gray-200">
+<div><span class="text-primary">"id"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"proj-002"</span>,</div>
+<div><span class="text-primary">"name"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"User Dashboard"</span>,</div>
+<div><span class="text-primary">"status"</span><span class="text-gray-500">:</span> <span class="text-yellow-600">"planning"</span>,</div>
+<div><span class="text-primary">"members"</span><span class="text-gray-500">:</span> <span class="text-green-600">3</span>,</div>
+<div><span class="text-primary">"tasks"</span><span class="text-gray-500">:</span> <span class="text-green-600">12</span>,</div>
+<div><span class="text-primary">"completion"</span><span class="text-gray-500">:</span> <span class="text-green-600">25</span></div>
+</div>
+<span class="text-gray-500">}</span>
+</div>
+<span class="text-gray-500">]</span>
+</div>
+<span class="text-gray-500">}</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Regex Tester Tab -->
+<div id="regexTab" class="hidden">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<div class="mb-4">
+<label class="block text-sm font-medium text-gray-700 mb-1">Regex Pattern</label>
+<div class="flex">
+<span class="inline-flex items-center px-3 rounded-l border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">/</span>
+<input type="text" id="regexPattern" class="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 text-sm" placeholder="Enter regex pattern" value="(\w+)@(\w+)\.(\w+)">
+<span class="inline-flex items-center px-3 rounded-r border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">/g</span>
+</div>
+</div>
+<div class="mb-4">
+<label class="block text-sm font-medium text-gray-700 mb-1">Test String</label>
+<textarea id="regexTestString" class="w-full h-32 p-3 text-sm border border-gray-300 rounded" placeholder="Enter text to test against the pattern">Contact us at support@example.com or sales@company.org for more information.
+Our technical team is available at tech@developer.io</textarea>
+</div>
+<div class="flex space-x-2">
+<button id="testRegexBtn" class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-button !rounded-button whitespace-nowrap">Test Regex</button>
+<button class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-button !rounded-button whitespace-nowrap">Clear</button>
+</div>
+</div>
+<div>
+<div class="mb-4">
+<h3 class="text-sm font-medium text-gray-700 mb-1">Results</h3>
+<div class="bg-gray-50 p-3 rounded border border-gray-200 h-32 overflow-y-auto text-sm">
+<div id="regexResults">
+<p>Contact us at <span class="regex-match">support@example.com</span> or <span class="regex-match">sales@company.org</span> for more information.</p>
+<p>Our technical team is available at <span class="regex-match">tech@developer.io</span></p>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-sm font-medium text-gray-700 mb-1">Matches</h3>
+<div class="bg-gray-50 p-3 rounded border border-gray-200 h-32 overflow-y-auto">
+<div class="space-y-2">
+<div class="p-2 bg-white rounded border border-gray-200 text-sm">
+<div class="flex justify-between">
+<span class="font-medium">Match 1:</span>
+<span class="text-primary">support@example.com</span>
+</div>
+<div class="mt-1 pl-4 text-xs text-gray-500">
+<div>Group 1: support</div>
+<div>Group 2: example</div>
+<div>Group 3: com</div>
+</div>
+</div>
+<div class="p-2 bg-white rounded border border-gray-200 text-sm">
+<div class="flex justify-between">
+<span class="font-medium">Match 2:</span>
+<span class="text-primary">sales@company.org</span>
+</div>
+<div class="mt-1 pl-4 text-xs text-gray-500">
+<div>Group 1: sales</div>
+<div>Group 2: company</div>
+<div>Group 3: org</div>
+</div>
+</div>
+<div class="p-2 bg-white rounded border border-gray-200 text-sm">
+<div class="flex justify-between">
+<span class="font-medium">Match 3:</span>
+<span class="text-primary">tech@developer.io</span>
+</div>
+<div class="mt-1 pl-4 text-xs text-gray-500">
+<div>Group 1: tech</div>
+<div>Group 2: developer</div>
+<div>Group 3: io</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Snippet Manager Tab -->
+<div id="snippetTab" class="hidden">
+<div class="flex mb-4">
+<div class="relative flex-1 max-w-xs">
+<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+<i class="ri-search-line text-gray-400"></i>
+</div>
+<input type="text" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded text-sm" placeholder="Search snippets...">
+</div>
+<div class="ml-2 relative">
+<button class="flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm bg-white">
+<span>All Languages</span>
+<i class="ri-arrow-down-s-line ml-2"></i>
+</button>
+</div>
+<div class="ml-auto">
+<button class="px-3 py-2 bg-primary text-white text-sm font-medium rounded-button !rounded-button whitespace-nowrap">
+<i class="ri-add-line mr-1"></i> New Snippet
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="col-span-1">
+<div class="h-64 overflow-y-auto border border-gray-200 rounded">
+<div class="p-2 bg-primary bg-opacity-10 border-l-4 border-primary">
+<div class="flex items-center justify-between">
+<span class="font-medium text-sm">Auth Middleware</span>
+<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">JavaScript</span>
+</div>
+<p class="text-xs text-gray-500 mt-1">JWT authentication middleware for Express</p>
+</div>
+<div class="p-2 border-b border-gray-200">
+<div class="flex items-center justify-between">
+<span class="font-medium text-sm">React Hooks Setup</span>
+<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">JavaScript</span>
+</div>
+<p class="text-xs text-gray-500 mt-1">Common React hooks for data fetching</p>
+</div>
+<div class="p-2 border-b border-gray-200">
+<div class="flex items-center justify-between">
+<span class="font-medium text-sm">Docker Compose</span>
+<span class="text-xs px-2 py-0.5 bg-purple-100 text-purple-800 rounded">YAML</span>
+</div>
+<p class="text-xs text-gray-500 mt-1">Setup for Node.js + MongoDB + Redis</p>
+</div>
+<div class="p-2 border-b border-gray-200">
+<div class="flex items-center justify-between">
+<span class="font-medium text-sm">API Error Handler</span>
+<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">JavaScript</span>
+</div>
+<p class="text-xs text-gray-500 mt-1">Centralized error handling for REST APIs</p>
+</div>
+<div class="p-2 border-b border-gray-200">
+<div class="flex items-center justify-between">
+<span class="font-medium text-sm">PostgreSQL Queries</span>
+<span class="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">SQL</span>
+</div>
+<p class="text-xs text-gray-500 mt-1">Common queries for user management</p>
+</div>
+</div>
+</div>
+<div class="col-span-2">
+<div class="border border-gray-200 rounded">
+<div class="flex justify-between items-center p-3 border-b border-gray-200 bg-gray-50">
+<div>
+<h3 class="font-medium">Auth Middleware</h3>
+<p class="text-xs text-gray-500">Created: May 12, 2025 • Updated: May 15, 2025</p>
+</div>
+<div class="flex space-x-2">
+<button class="p-1 text-gray-500 hover:text-gray-700">
+<i class="ri-edit-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-700">
+<i class="ri-delete-bin-line"></i>
+</button>
+<button class="p-1 text-gray-500 hover:text-gray-700">
+<i class="ri-file-copy-line"></i>
+</button>
+</div>
+</div>
+<div class="p-3 bg-gray-800 text-gray-100 font-mono text-sm h-48 overflow-y-auto">
+<pre>const jwt = require('jsonwebtoken');
+/**
+* JWT Authentication Middleware
+* Verifies the token from Authorization header
+*/
+const authMiddleware = (req, res, next) => {
+// Get token from header
+const authHeader = req.headers.authorization;
+if (!authHeader || !authHeader.startsWith('Bearer ')) {
+return res.status(401).json({
+message: 'Authentication failed. No token provided.'
+});
+}
+const token = authHeader.split(' ')[1];
+try {
+// Verify token
+const decoded = jwt.verify(token, process.env.JWT_SECRET);
+req.user = decoded;
+next();
+} catch (error) {
+return res.status(401).json({
+message: 'Authentication failed. Invalid token.'
+});
+}
+};
+module.exports = authMiddleware;</pre>
+</div>
+<div class="p-3 border-t border-gray-200 flex justify-between items-center">
+<div class="flex items-center">
+<span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">JavaScript</span>
+<span class="ml-2 text-xs text-gray-500">256 bytes</span>
+</div>
+<button class="px-3 py-1 bg-primary text-white text-xs rounded-button !rounded-button whitespace-nowrap">Copy Code</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Time Zone Converter Tab -->
+<div id="timezoneTab" class="hidden">
+<div class="max-w-3xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">Your Local Time</label>
+<div class="flex">
+<input type="time" class="flex-1 min-w-0 block w-full px-3 py-2 border border-gray-300 rounded-l text-sm" value="14:30">
+<span class="inline-flex items-center px-3 py-2 rounded-r border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+<button class="flex items-center">
+<span>PDT (UTC-7)</span>
+<i class="ri-arrow-down-s-line ml-2"></i>
+</button>
+</span>
+</div>
+<div class="mt-4">
+<label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+<input type="date" class="w-full px-3 py-2 border border-gray-300 rounded text-sm" value="2025-05-18">
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">Convert To</label>
+<div class="flex mb-4">
+<button class="flex items-center justify-between px-3 py-2 border border-gray-300 rounded text-sm bg-white w-full">
+<span>Select time zone</span>
+<i class="ri-arrow-down-s-line"></i>
+</button>
+<button class="ml-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-button !rounded-button whitespace-nowrap">Add</button>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-gray-50 rounded border border-gray-200">
+<div class="flex justify-between items-center">
+<div>
+<span class="text-sm font-medium">London (BST)</span>
+<p class="text-xs text-gray-500">UTC+1</p>
+</div>
+<div class="text-lg font-medium">22:30</div>
+</div>
+</div>
+<div class="p-3 bg-gray-50 rounded border border-gray-200">
+<div class="flex justify-between items-center">
+<div>
+<span class="text-sm font-medium">Tokyo (JST)</span>
+<p class="text-xs text-gray-500">UTC+9</p>
+</div>
+<div class="text-lg font-medium">06:30</div>
+<div class="text-xs text-gray-500">+1 day</div>
+</div>
+</div>
+<div class="p-3 bg-gray-50 rounded border border-gray-200">
+<div class="flex justify-between items-center">
+<div>
+<span class="text-sm font-medium">New York (EDT)</span>
+<p class="text-xs text-gray-500">UTC-4</p>
+</div>
+<div class="text-lg font-medium">17:30</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Mind Map Section -->
+<div class="mt-8">
+<div class="flex justify-between items-center mb-5">
+<h2 class="text-xl font-semibold text-gray-900">Mind Map Builder</h2>
+<div class="flex space-x-2">
+<button class="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-button !rounded-button whitespace-nowrap">
+<i class="ri-download-line mr-1"></i> Export
+</button>
+<button class="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-button !rounded-button whitespace-nowrap">
+<i class="ri-add-line mr-1"></i> New Node
+</button>
+</div>
+</div>
+<div class="bg-white rounded shadow-sm p-6">
+<div class="flex justify-center items-center h-64 relative">
+<!-- Mind Map Visualization -->
+<div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+<!-- Center Node -->
+<div class="relative">
+<div class="absolute left-0 top-1/2 w-24 h-0.5 bg-gray-300 -translate-y-1/2"></div>
+<div class="absolute right-0 top-1/2 w-24 h-0.5 bg-gray-300 -translate-y-1/2"></div>
+<div class="absolute left-1/2 bottom-0 w-0.5 h-16 bg-gray-300 -translate-x-1/2"></div>
+<div class="absolute left-1/2 top-0 w-0.5 h-16 bg-gray-300 -translate-x-1/2"></div>
+<div class="z-10 relative bg-primary text-white px-4 py-2 rounded-lg text-center w-40">
+<span class="font-medium">Project Architecture</span>
+</div>
+</div>
+<!-- Left Node -->
+<div class="absolute left-[-140px] top-1/2 transform -translate-y-1/2">
+<div class="bg-blue-100 border border-blue-300 px-3 py-2 rounded-lg text-center w-32">
+<span class="text-sm font-medium">Frontend</span>
+</div>
+<!-- Sub Nodes -->
+<div class="absolute left-1/2 -bottom-12 w-0.5 h-12 bg-gray-300 -translate-x-1/2"></div>
+<div class="absolute left-1/2 -top-12 w-0.5 h-12 bg-gray-300 -translate-x-1/2"></div>
+<div class="absolute left-1/2 -bottom-24 -translate-x-1/2 bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs w-24 text-center">
+React
+</div>
+<div class="absolute left-1/2 -top-24 -translate-x-1/2 bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs w-24 text-center">
+UI/UX
+</div>
+</div>
+<!-- Right Node -->
+<div class="absolute right-[-140px] top-1/2 transform -translate-y-1/2">
+<div class="bg-green-100 border border-green-300 px-3 py-2 rounded-lg text-center w-32">
+<span class="text-sm font-medium">Backend</span>
+</div>
+<!-- Sub Nodes -->
+<div class="absolute right-1/2 -bottom-12 w-0.5 h-12 bg-gray-300 translate-x-1/2"></div>
+<div class="absolute right-1/2 -top-12 w-0.5 h-12 bg-gray-300 translate-x-1/2"></div>
+<div class="absolute right-1/2 -bottom-24 translate-x-1/2 bg-green-50 border border-green-200 px-2 py-1 rounded text-xs w-24 text-center">
+Node.js
+</div>
+<div class="absolute right-1/2 -top-24 translate-x-1/2 bg-green-50 border border-green-200 px-2 py-1 rounded text-xs w-24 text-center">
+API
+</div>
+</div>
+<!-- Bottom Node -->
+<div class="absolute bottom-[-80px] left-1/2 transform -translate-x-1/2">
+<div class="bg-purple-100 border border-purple-300 px-3 py-2 rounded-lg text-center w-32">
+<span class="text-sm font-medium">Database</span>
+</div>
+<!-- Sub Nodes -->
+<div class="absolute left-[-60px] top-1/2 w-12 h-0.5 bg-gray-300 -translate-y-1/2"></div>
+<div class="absolute right-[-60px] top-1/2 w-12 h-0.5 bg-gray-300 -translate-y-1/2"></div>
+<div class="absolute left-[-96px] top-1/2 -translate-y-1/2 bg-purple-50 border border-purple-200 px-2 py-1 rounded text-xs w-24 text-center">
+MongoDB
+</div>
+<div class="absolute right-[-96px] top-1/2 -translate-y-1/2 bg-purple-50 border border-purple-200 px-2 py-1 rounded text-xs w-24 text-center">
+Redis
+</div>
+</div>
+<!-- Top Node -->
+<div class="absolute top-[-80px] left-1/2 transform -translate-x-1/2">
+<div class="bg-yellow-100 border border-yellow-300 px-3 py-2 rounded-lg text-center w-32">
+<span class="text-sm font-medium">DevOps</span>
+</div>
+<!-- Sub Nodes -->
+<div class="absolute left-[-60px] top-1/2 w-12 h-0.5 bg-gray-300 -translate-y-1/2"></div>
+<div class="absolute right-[-60px] top-1/2 w-12 h-0.5 bg-gray-300 -translate-y-1/2"></div>
+<div class="absolute left-[-96px] top-1/2 -translate-y-1/2 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded text-xs w-24 text-center">
+Docker
+</div>
+<div class="absolute right-[-96px] top-1/2 -translate-y-1/2 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded text-xs w-24 text-center">
+CI/CD
+</div>
+</div>
+</div>
+</div>
+<div class="flex justify-center mt-4">
+<div class="flex space-x-4">
+<button class="p-2 bg-gray-100 rounded-full">
+<i class="ri-zoom-out-line"></i>
+</button>
+<button class="p-2 bg-gray-100 rounded-full">
+<i class="ri-zoom-in-line"></i>
+</button>
+<button class="p-2 bg-gray-100 rounded-full">
+<i class="ri-refresh-line"></i>
+</button>
+<button class="p-2 bg-gray-100 rounded-full">
+<i class="ri-fullscreen-line"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-white mt-12 border-t border-gray-200">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="flex flex-col md:flex-row justify-between items-center">
+<div class="mb-4 md:mb-0">
+<span class="text-xl font-['Pacifico'] text-primary">DevTools</span>
+<p class="mt-1 text-sm text-gray-500">By Ayush Bhardwaj.</p>
+</div>
+<div class="flex space-x-6">
+<a href="https://github.com/Ayushbh78" class="text-gray-400 hover:text-gray-500">
+<i class="ri-github-fill text-lg"></i>
+</a>
+<a href="https://www.linkedin.com/in/ayush-bhardwaj-22589b2a8?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" class="text-gray-400 hover:text-gray-500">
+<i class="ri-linkedin-fill text-lg"></i>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+// Tab switching
+const tabs = {
+jsonTab: document.getElementById('jsonTab'),
+regexTab: document.getElementById('regexTab'),
+snippetTab: document.getElementById('snippetTab'),
+timezoneTab: document.getElementById('timezoneTab')
+};
+const tabButtons = {
+jsonTabBtn: document.getElementById('jsonTabBtn'),
+regexTabBtn: document.getElementById('regexTabBtn'),
+snippetTabBtn: document.getElementById('snippetTabBtn'),
+timezoneTabBtn: document.getElementById('timezoneTabBtn')
+};
+function switchTab(tabId) {
+// Hide all tabs
+Object.values(tabs).forEach(tab => {
+tab.classList.add('hidden');
+});
+// Show selected tab
+tabs[tabId].classList.remove('hidden');
+// Update button styles
+Object.values(tabButtons).forEach(btn => {
+btn.classList.remove('text-primary', 'bg-primary', 'bg-opacity-10');
+btn.classList.add('text-gray-500');
+});
+tabButtons[tabId + 'Btn'].classList.remove('text-gray-500');
+tabButtons[tabId + 'Btn'].classList.add('text-primary', 'bg-primary', 'bg-opacity-10');
+}
+tabButtons.jsonTabBtn.addEventListener('click', () => switchTab('jsonTab'));
+tabButtons.regexTabBtn.addEventListener('click', () => switchTab('regexTab'));
+tabButtons.snippetTabBtn.addEventListener('click', () => switchTab('snippetTab'));
+tabButtons.timezoneTabBtn.addEventListener('click', () => switchTab('timezoneTab'));
+});
+document.addEventListener('DOMContentLoaded', function() {
+// Pomodoro Timer
+const timerDisplay = document.getElementById('timerDisplay');
+const startButton = document.getElementById('startTimer');
+const resetButton = document.getElementById('resetTimer');
+const focusTimeRange = document.getElementById('focusTimeRange');
+const focusTimeValue = document.getElementById('focusTimeValue');
+const sessionCount = document.getElementById('sessionCount');
+let timer;
+let isRunning = false;
+let timeLeft = 25 * 60; // 25 minutes in seconds
+let sessions = 0;
+function updateTimerDisplay() {
+const minutes = Math.floor(timeLeft / 60);
+const seconds = timeLeft % 60;
+timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+function startTimer() {
+if (isRunning) {
+clearInterval(timer);
+startButton.textContent = 'Start';
+isRunning = false;
+} else {
+timer = setInterval(() => {
+if (timeLeft > 0) {
+timeLeft--;
+updateTimerDisplay();
+} else {
+clearInterval(timer);
+sessions++;
+sessionCount.textContent = sessions;
+resetTimer();
+startButton.textContent = 'Start';
+isRunning = false;
+}
+}, 1000);
+startButton.textContent = 'Pause';
+isRunning = true;
+}
+}
+function resetTimer() {
+clearInterval(timer);
+timeLeft = parseInt(focusTimeRange.value) * 60;
+updateTimerDisplay();
+startButton.textContent = 'Start';
+isRunning = false;
+}
+startButton.addEventListener('click', startTimer);
+resetButton.addEventListener('click', resetTimer);
+focusTimeRange.addEventListener('input', function() {
+const value = this.value;
+focusTimeValue.textContent = `${value} min`;
+if (!isRunning) {
+timeLeft = value * 60;
+updateTimerDisplay();
+}
+});
+// Initialize timer display
+updateTimerDisplay();
+});
+document.addEventListener('DOMContentLoaded', function() {
+// Markdown Editor
+const markdownInput = document.getElementById('markdownInput');
+const wordCount = document.getElementById('wordCount');
+function updateWordCount() {
+const text = markdownInput.value.trim();
+const words = text ? text.split(/\s+/).length : 0;
+wordCount.textContent = words;
+}
+markdownInput.addEventListener('input', updateWordCount);
+// Initialize word count
+updateWordCount();
+});
+document.addEventListener('DOMContentLoaded', function() {
+// Add Note functionality
+const addNoteButton = document.getElementById('addNote');
+const notesContainer = document.getElementById('notesContainer');
+const colors = ['bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-purple-100', 'bg-pink-100'];
+addNoteButton.addEventListener('click', function() {
+const today = new Date();
+const date = `${today.toLocaleString('default', { month: 'short' })} ${today.getDate()}`;
+const randomColor = colors[Math.floor(Math.random() * colors.length)];
+const noteElement = document.createElement('div');
+noteElement.className = `sticky-note p-3 rounded ${randomColor} shadow-sm`;
+noteElement.innerHTML = `
+<div class="flex justify-between mb-1">
+<span class="text-xs text-gray-500">${date}</span>
+<button class="text-gray-400 hover:text-gray-600 delete-note">
+<i class="ri-delete-bin-line text-xs"></i>
+</button>
+</div>
+<p class="text-sm text-gray-800" contenteditable="true">New note</p>
+`;
+notesContainer.prepend(noteElement);
+// Focus on the new note
+const noteContent = noteElement.querySelector('p');
+noteContent.focus();
+// Select all text
+const range = document.createRange();
+range.selectNodeContents(noteContent);
+const selection = window.getSelection();
+selection.removeAllRanges();
+selection.addRange(range);
+// Add delete functionality
+const deleteButton = noteElement.querySelector('.delete-note');
+deleteButton.addEventListener('click', function() {
+noteElement.remove();
+});
+});
+// Add delete functionality to existing notes
+document.querySelectorAll('.delete-note').forEach(button => {
+button.addEventListener('click', function() {
+this.closest('.sticky-note').remove();
+});
+});
+});
+</script>
+</body>
+</html>
