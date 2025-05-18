@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects - DevTools Hub</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#4f46e5',secondary:'#38bdf8'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Inter', sans-serif;
+background-color: #f9fafb;
+}
+.task-progress::-webkit-progress-bar {
+background-color: #e5e7eb;
+border-radius: 9999px;
+}
+.task-progress::-webkit-progress-value {
+border-radius: 9999px;
+}
+.project-progress::-webkit-progress-bar {
+background-color: #e5e7eb;
+border-radius: 9999px;
+}
+.project-progress::-webkit-progress-value {
+background-color: #4f46e5;
+border-radius: 9999px;
+}
+.custom-checkbox {
+position: relative;
+cursor: pointer;
+}
+.custom-checkbox input {
+position: absolute;
+opacity: 0;
+cursor: pointer;
+}
+.checkmark {
+position: absolute;
+top: 0;
+left: 0;
+height: 20px;
+width: 20px;
+background-color: white;
+border: 2px solid #d1d5db;
+border-radius: 4px;
+transition: all 0.2s;
+}
+.custom-checkbox:hover .checkmark {
+border-color: #4f46e5;
+}
+.custom-checkbox input:checked ~ .checkmark {
+background-color: #4f46e5;
+border-color: #4f46e5;
+}
+.checkmark:after {
+content: "";
+position: absolute;
+display: none;
+}
+.custom-checkbox input:checked ~ .checkmark:after {
+display: block;
+}
+.custom-checkbox .checkmark:after {
+left: 6px;
+top: 2px;
+width: 5px;
+height: 10px;
+border: solid white;
+border-width: 0 2px 2px 0;
+transform: rotate(45deg);
+}
+.custom-switch {
+position: relative;
+display: inline-block;
+width: 44px;
+height: 24px;
+}
+.custom-switch input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+.switch-slider {
+position: absolute;
+cursor: pointer;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: #e5e7eb;
+transition: .4s;
+border-radius: 34px;
+}
+.switch-slider:before {
+position: absolute;
+content: "";
+height: 18px;
+width: 18px;
+left: 3px;
+bottom: 3px;
+background-color: white;
+transition: .4s;
+border-radius: 50%;
+}
+input:checked + .switch-slider {
+background-color: #4f46e5;
+}
+input:checked + .switch-slider:before {
+transform: translateX(20px);
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.project-card {
+transition: all 0.3s ease;
+}
+.project-card:hover {
+transform: translateY(-4px);
+box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.project-card .dropdown-menu {
+display: none;
+position: absolute;
+right: 0;
+top: 100%;
+z-index: 10;
+}
+.project-card .dropdown:hover .dropdown-menu {
+display: block;
+}
+</style>
+</head>
+<body>
+<div class="min-h-screen flex flex-col">
+<!-- Header -->
+<header class="bg-white shadow-sm">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between h-16">
+<div class="flex items-center">
+<div class="flex-shrink-0 flex items-center">
+<span class="text-2xl font-['Pacifico'] text-primary">DevTools</span>
+</div>
+<nav class="ml-8 flex space-x-6">
+<a href="Productivity-Tools-Dashboard.html" data-readdy="true" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Dashboard</a>
+<a href="#" class="border-b-2 border-primary text-gray-900 px-1 pt-1 text-sm font-medium">Projects</a>
+<a  class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Calendar</a>
+<a href="#" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Settings</a>
+</nav>
+</div>
+<div class="flex items-center">
+<div class="relative">
+<div class="flex items-center bg-gray-100 rounded-full px-3 py-1.5 w-64">
+<div class="w-5 h-5 flex items-center justify-center text-gray-400">
+<i class="ri-search-line"></i>
+</div>
+<input type="text" placeholder="Search..." class="ml-2 bg-transparent border-none text-sm text-gray-700 focus:outline-none w-full">
+</div>
+</div>
+<div class="ml-4 flex items-center">
+<label class="custom-switch mr-4">
+<input type="checkbox" id="darkModeToggle">
+<span class="switch-slider"></span>
+</label>
+<button type="button" class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500">
+<i class="ri-notification-3-line"></i>
+</button>
+<div class="ml-3 relative">
+<div class="flex items-center">
+<button type="button" class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+<span class="text-xs font-medium">JS</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Projects Header -->
+<div class="mb-8 flex justify-between items-center">
+<div>
+<h1 class="text-2xl font-semibold text-gray-900">Projects</h1>
+<p class="mt-1 text-sm text-gray-500">Manage and organize your development projects</p>
+</div>
+<button id="newProjectBtn" class="flex items-center px-4 py-2 bg-primary text-white font-medium rounded-button !rounded-button whitespace-nowrap">
+<i class="ri-add-line mr-2"></i>
+New Project
+</button>
+</div>
+<!-- Projects Filters & Controls -->
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+<div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+<div class="relative">
+<div class="flex items-center bg-white rounded border border-gray-200 px-3 py-2 w-full sm:w-64">
+<div class="w-5 h-5 flex items-center justify-center text-gray-400">
+<i class="ri-search-line"></i>
+</div>
+<input type="text" placeholder="Search projects..." class="ml-2 bg-transparent border-none text-sm text-gray-700 focus:outline-none w-full">
+</div>
+</div>
+<div class="flex gap-3">
+<div class="relative">
+<button class="flex items-center justify-between px-3 py-2 bg-white border border-gray-200 rounded text-sm w-full sm:w-36">
+<span>All Projects</span>
+<i class="ri-arrow-down-s-line ml-2"></i>
+</button>
+<div class="hidden absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded shadow-lg z-10">
+<div class="py-1">
+<a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<span class="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+All Projects
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+Active
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+Planning
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<span class="w-2 h-2 rounded-full bg-gray-500 mr-2"></span>
+Completed
+</a>
+</div>
+</div>
+</div>
+<div class="relative">
+<button class="flex items-center justify-between px-3 py-2 bg-white border border-gray-200 rounded text-sm w-full sm:w-36">
+<span>Recent</span>
+<i class="ri-arrow-down-s-line ml-2"></i>
+</button>
+<div class="hidden absolute left-0 mt-1 w-full bg-white border border-gray-200 rounded shadow-lg z-10">
+<div class="py-1">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Recent</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Name</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Due Date</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Progress</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 bg-white border border-gray-200 rounded text-gray-500 hover:text-gray-700 active:bg-gray-100">
+<i class="ri-layout-grid-line"></i>
+</button>
+<button class="p-2 bg-white border border-gray-200 rounded text-gray-500 hover:text-gray-700 active:bg-gray-100">
+<i class="ri-list-check-2"></i>
+</button>
+</div>
+</div>
+<!-- Projects Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Project Card 1 -->
+<div class="project-card bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+<div class="p-5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary bg-opacity-10 text-primary">
+<i class="ri-code-s-slash-line ri-lg"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-base font-medium text-gray-900">API Gateway</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+Active
+</span>
+</div>
+</div>
+<div class="relative dropdown">
+<button class="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<i class="ri-more-2-fill"></i>
+</button>
+<div class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[160px]">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-edit-line mr-2"></i> Edit
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-share-line mr-2"></i> Share
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-archive-line mr-2"></i> Archive
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+<i class="ri-delete-bin-line mr-2"></i> Delete
+</a>
+</div>
+</div>
+</div>
+<p class="text-sm text-gray-500 mb-4">Centralized API gateway with authentication and rate limiting</p>
+<div class="mb-4">
+<div class="flex justify-between text-xs text-gray-500 mb-1">
+<span>Progress</span>
+<span>68%</span>
+</div>
+<progress class="project-progress w-full h-1.5" value="68" max="100"></progress>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs border-2 border-white">RJ</div>
+<div class="w-7 h-7 rounded-full bg-pink-500 flex items-center justify-center text-white text-xs border-2 border-white">AK</div>
+<div class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs border-2 border-white">MH</div>
+<div class="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs border-2 border-white">SL</div>
+<div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs border-2 border-white">+2</div>
+</div>
+<div class="text-xs text-gray-500">Due: June 15, 2025</div>
+</div>
+</div>
+<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+<div class="flex items-center space-x-3 text-xs text-gray-500">
+<div class="flex items-center">
+<i class="ri-task-line mr-1"></i>
+<span>23 tasks</span>
+</div>
+<div class="flex items-center">
+<i class="ri-chat-1-line mr-1"></i>
+<span>15 comments</span>
+</div>
+</div>
+<div class="flex items-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+<i class="ri-flag-line mr-1"></i>
+High
+</span>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="project-card bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+<div class="p-5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+<i class="ri-dashboard-line ri-lg"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-base font-medium text-gray-900">User Dashboard</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+Planning
+</span>
+</div>
+</div>
+<div class="relative dropdown">
+<button class="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<i class="ri-more-2-fill"></i>
+</button>
+<div class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[160px]">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-edit-line mr-2"></i> Edit
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-share-line mr-2"></i> Share
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-archive-line mr-2"></i> Archive
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+<i class="ri-delete-bin-line mr-2"></i> Delete
+</a>
+</div>
+</div>
+</div>
+<p class="text-sm text-gray-500 mb-4">Interactive dashboard with data visualization and analytics</p>
+<div class="mb-4">
+<div class="flex justify-between text-xs text-gray-500 mb-1">
+<span>Progress</span>
+<span>25%</span>
+</div>
+<progress class="project-progress w-full h-1.5" value="25" max="100"></progress>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs border-2 border-white">SL</div>
+<div class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs border-2 border-white">MH</div>
+<div class="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center text-white text-xs border-2 border-white">DP</div>
+</div>
+<div class="text-xs text-gray-500">Due: July 10, 2025</div>
+</div>
+</div>
+<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+<div class="flex items-center space-x-3 text-xs text-gray-500">
+<div class="flex items-center">
+<i class="ri-task-line mr-1"></i>
+<span>12 tasks</span>
+</div>
+<div class="flex items-center">
+<i class="ri-chat-1-line mr-1"></i>
+<span>8 comments</span>
+</div>
+</div>
+<div class="flex items-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+<i class="ri-flag-line mr-1"></i>
+Medium
+</span>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="project-card bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+<div class="p-5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+<i class="ri-database-2-line ri-lg"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-base font-medium text-gray-900">Database Migration</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+Active
+</span>
+</div>
+</div>
+<div class="relative dropdown">
+<button class="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<i class="ri-more-2-fill"></i>
+</button>
+<div class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[160px]">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-edit-line mr-2"></i> Edit
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-share-line mr-2"></i> Share
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-archive-line mr-2"></i> Archive
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+<i class="ri-delete-bin-line mr-2"></i> Delete
+</a>
+</div>
+</div>
+</div>
+<p class="text-sm text-gray-500 mb-4">Migration from MongoDB to PostgreSQL with data transformation</p>
+<div class="mb-4">
+<div class="flex justify-between text-xs text-gray-500 mb-1">
+<span>Progress</span>
+<span>45%</span>
+</div>
+<progress class="project-progress w-full h-1.5" value="45" max="100"></progress>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs border-2 border-white">RJ</div>
+<div class="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs border-2 border-white">TW</div>
+<div class="w-7 h-7 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs border-2 border-white">KL</div>
+</div>
+<div class="text-xs text-gray-500">Due: June 5, 2025</div>
+</div>
+</div>
+<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+<div class="flex items-center space-x-3 text-xs text-gray-500">
+<div class="flex items-center">
+<i class="ri-task-line mr-1"></i>
+<span>18 tasks</span>
+</div>
+<div class="flex items-center">
+<i class="ri-chat-1-line mr-1"></i>
+<span>24 comments</span>
+</div>
+</div>
+<div class="flex items-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+<i class="ri-flag-line mr-1"></i>
+Critical
+</span>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="project-card bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+<div class="p-5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+<i class="ri-test-tube-line ri-lg"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-base font-medium text-gray-900">Test Automation</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+Completed
+</span>
+</div>
+</div>
+<div class="relative dropdown">
+<button class="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<i class="ri-more-2-fill"></i>
+</button>
+<div class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[160px]">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-edit-line mr-2"></i> Edit
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-share-line mr-2"></i> Share
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-archive-line mr-2"></i> Archive
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+<i class="ri-delete-bin-line mr-2"></i> Delete
+</a>
+</div>
+</div>
+</div>
+<p class="text-sm text-gray-500 mb-4">Automated testing framework for frontend and backend services</p>
+<div class="mb-4">
+<div class="flex justify-between text-xs text-gray-500 mb-1">
+<span>Progress</span>
+<span>100%</span>
+</div>
+<progress class="project-progress w-full h-1.5" value="100" max="100"></progress>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs border-2 border-white">MH</div>
+<div class="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs border-2 border-white">SL</div>
+<div class="w-7 h-7 rounded-full bg-pink-500 flex items-center justify-center text-white text-xs border-2 border-white">AK</div>
+</div>
+<div class="text-xs text-gray-500">Completed: May 12, 2025</div>
+</div>
+</div>
+<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+<div class="flex items-center space-x-3 text-xs text-gray-500">
+<div class="flex items-center">
+<i class="ri-task-line mr-1"></i>
+<span>32 tasks</span>
+</div>
+<div class="flex items-center">
+<i class="ri-chat-1-line mr-1"></i>
+<span>19 comments</span>
+</div>
+</div>
+<div class="flex items-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+<i class="ri-flag-line mr-1"></i>
+Medium
+</span>
+</div>
+</div>
+</div>
+<!-- Project Card 5 -->
+<div class="project-card bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+<div class="p-5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+<i class="ri-secure-payment-line ri-lg"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-base font-medium text-gray-900">Payment Integration</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+Active
+</span>
+</div>
+</div>
+<div class="relative dropdown">
+<button class="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<i class="ri-more-2-fill"></i>
+</button>
+<div class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[160px]">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-edit-line mr-2"></i> Edit
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-share-line mr-2"></i> Share
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-archive-line mr-2"></i> Archive
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+<i class="ri-delete-bin-line mr-2"></i> Delete
+</a>
+</div>
+</div>
+</div>
+<p class="text-sm text-gray-500 mb-4">Stripe and PayPal integration with subscription management</p>
+<div class="mb-4">
+<div class="flex justify-between text-xs text-gray-500 mb-1">
+<span>Progress</span>
+<span>78%</span>
+</div>
+<progress class="project-progress w-full h-1.5" value="78" max="100"></progress>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs border-2 border-white">TW</div>
+<div class="w-7 h-7 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs border-2 border-white">KL</div>
+<div class="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs border-2 border-white">RJ</div>
+</div>
+<div class="text-xs text-gray-500">Due: June 22, 2025</div>
+</div>
+</div>
+<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+<div class="flex items-center space-x-3 text-xs text-gray-500">
+<div class="flex items-center">
+<i class="ri-task-line mr-1"></i>
+<span>27 tasks</span>
+</div>
+<div class="flex items-center">
+<i class="ri-chat-1-line mr-1"></i>
+<span>31 comments</span>
+</div>
+</div>
+<div class="flex items-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+<i class="ri-flag-line mr-1"></i>
+High
+</span>
+</div>
+</div>
+</div>
+<!-- Project Card 6 -->
+<div class="project-card bg-white rounded shadow-sm overflow-hidden border border-gray-100">
+<div class="p-5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center">
+<div class="w-10 h-10 flex items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+<i class="ri-file-cloud-line ri-lg"></i>
+</div>
+<div class="ml-3">
+<h3 class="text-base font-medium text-gray-900">Cloud Migration</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+Planning
+</span>
+</div>
+</div>
+<div class="relative dropdown">
+<button class="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<i class="ri-more-2-fill"></i>
+</button>
+<div class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[160px]">
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-edit-line mr-2"></i> Edit
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-share-line mr-2"></i> Share
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+<i class="ri-archive-line mr-2"></i> Archive
+</a>
+<a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+<i class="ri-delete-bin-line mr-2"></i> Delete
+</a>
+</div>
+</div>
+</div>
+<p class="text-sm text-gray-500 mb-4">Migration from on-premise to AWS cloud infrastructure</p>
+<div class="mb-4">
+<div class="flex justify-between text-xs text-gray-500 mb-1">
+<span>Progress</span>
+<span>15%</span>
+</div>
+<progress class="project-progress w-full h-1.5" value="15" max="100"></progress>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center text-white text-xs border-2 border-white">DP</div>
+<div class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs border-2 border-white">MH</div>
+<div class="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs border-2 border-white">TW</div>
+<div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs border-2 border-white">+3</div>
+</div>
+<div class="text-xs text-gray-500">Due: August 5, 2025</div>
+</div>
+</div>
+<div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+<div class="flex items-center space-x-3 text-xs text-gray-500">
+<div class="flex items-center">
+<i class="ri-task-line mr-1"></i>
+<span>9 tasks</span>
+</div>
+<div class="flex items-center">
+<i class="ri-chat-1-line mr-1"></i>
+<span>5 comments</span>
+</div>
+</div>
+<div class="flex items-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+<i class="ri-flag-line mr-1"></i>
+Critical
+</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-8 flex items-center justify-between">
+<div class="flex-1 flex justify-between sm:hidden">
+<a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+Previous
+</a>
+<a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+Next
+</a>
+</div>
+<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+<div>
+<p class="text-sm text-gray-700">
+Showing <span class="font-medium">1</span> to <span class="font-medium">6</span> of <span class="font-medium">12</span> projects
+</p>
+</div>
+<div>
+<nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+<a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+<span class="sr-only">Previous</span>
+<i class="ri-arrow-left-s-line"></i>
+</a>
+<a href="#" aria-current="page" class="z-10 bg-primary bg-opacity-10 border-primary text-primary relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+1
+</a>
+<a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+2
+</a>
+<a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium">
+3
+</a>
+<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+...
+</span>
+<a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+8
+</a>
+<a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+<span class="sr-only">Next</span>
+<i class="ri-arrow-right-s-line"></i>
+</a>
+</nav>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- New Project Modal -->
+<div id="newProjectModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+<div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+<div class="fixed inset-0 transition-opacity" aria-hidden="true">
+<div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+</div>
+<span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+<div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+<div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+<div class="sm:flex sm:items-start">
+<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Project</h3>
+<div class="mt-2 space-y-4">
+<div>
+<label for="projectName" class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+<input type="text" id="projectName" class="w-full px-3 py-2 border border-gray-300 rounded text-sm" placeholder="Enter project name">
+</div>
+<div>
+<label for="projectDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+<textarea id="projectDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded text-sm" placeholder="Enter project description"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label for="projectStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+<select id="projectStatus" class="w-full px-3 py-2 border border-gray-300 rounded text-sm pr-8">
+<option value="planning">Planning</option>
+<option value="active">Active</option>
+<option value="completed">Completed</option>
+</select>
+</div>
+<div>
+<label for="projectPriority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+<select id="projectPriority" class="w-full px-3 py-2 border border-gray-300 rounded text-sm pr-8">
+<option value="low">Low</option>
+<option value="medium">Medium</option>
+<option value="high">High</option>
+<option value="critical">Critical</option>
+</select>
+</div>
+</div>
+<div>
+<label for="projectDueDate" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+<input type="date" id="projectDueDate" class="w-full px-3 py-2 border border-gray-300 rounded text-sm">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">Team Members</label>
+<div class="flex flex-wrap gap-2 p-2 border border-gray-300 rounded">
+<div class="flex items-center bg-primary bg-opacity-10 text-primary rounded-full px-3 py-1 text-sm">
+<span>Rebecca Johnson</span>
+<button class="ml-2 text-primary">
+<i class="ri-close-line"></i>
+</button>
+</div>
+<div class="flex items-center bg-primary bg-opacity-10 text-primary rounded-full px-3 py-1 text-sm">
+<span>Michael Huang</span>
+<button class="ml-2 text-primary">
+<i class="ri-close-line"></i>
+</button>
+</div>
+<input type="text" class="flex-1 min-w-[100px] border-none text-sm focus:outline-none bg-transparent" placeholder="Add team members...">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+<button id="createProjectBtn" type="button" class="w-full inline-flex justify-center rounded-button border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none sm:ml-3 sm:w-auto sm:text-sm !rounded-button whitespace-nowrap">
+Create Project
+</button>
+<button id="cancelProjectBtn" type="button" class="mt-3 w-full inline-flex justify-center rounded-button border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm !rounded-button whitespace-nowrap">
+Cancel
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="bg-white mt-12 border-t border-gray-200">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="flex flex-col md:flex-row justify-between items-center">
+<div class="mb-4 md:mb-0">
+<span class="text-xl font-['Pacifico'] text-primary">DevTools</span>
+<p class="mt-1 text-sm text-gray-500">By Ayush Bhardwaj</p>
+</div>
+<div class="flex space-x-6">
+<a href="https://github.com/Ayushbh78" class="text-gray-400 hover:text-gray-500">
+<i class="ri-github-fill text-lg"></i>
+</a>
+<a href="https://www.linkedin.com/in/ayush-bhardwaj-22589b2a8?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" class="text-gray-400 hover:text-gray-500">
+<i class="ri-linkedin-fill text-lg"></i>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+// Modal functionality
+const newProjectBtn = document.getElementById('newProjectBtn');
+const newProjectModal = document.getElementById('newProjectModal');
+const cancelProjectBtn = document.getElementById('cancelProjectBtn');
+const createProjectBtn = document.getElementById('createProjectBtn');
+newProjectBtn.addEventListener('click', function() {
+newProjectModal.classList.remove('hidden');
+document.body.classList.add('overflow-hidden');
+});
+function closeModal() {
+newProjectModal.classList.add('hidden');
+document.body.classList.remove('overflow-hidden');
+}
+cancelProjectBtn.addEventListener('click', closeModal);
+createProjectBtn.addEventListener('click', function() {
+// Here you would normally handle the form submission
+// For now, just close the modal
+closeModal();
+// Show a notification
+showNotification('Project created successfully!');
+});
+// Close modal when clicking outside
+newProjectModal.addEventListener('click', function(e) {
+if (e.target === newProjectModal) {
+closeModal();
+}
+});
+// Notification functionality
+function showNotification(message) {
+const notification = document.createElement('div');
+notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500';
+notification.textContent = message;
+document.body.appendChild(notification);
+setTimeout(() => {
+notification.style.opacity = '0';
+setTimeout(() => {
+document.body.removeChild(notification);
+}, 500);
+}, 3000);
+}
+// Dark mode toggle
+const darkModeToggle = document.getElementById('darkModeToggle');
+darkModeToggle.addEventListener('change', function() {
+document.documentElement.classList.toggle('dark');
+});
+// Project card dropdown menus
+const dropdownButtons = document.querySelectorAll('.dropdown button');
+dropdownButtons.forEach(button => {
+button.addEventListener('click', function(e) {
+e.stopPropagation();
+const dropdown = this.closest('.dropdown');
+const menu = dropdown.querySelector('.dropdown-menu');
+menu.classList.toggle('hidden');
+});
+});
+// Close dropdowns when clicking outside
+document.addEventListener('click', function() {
+document.querySelectorAll('.dropdown-menu').forEach(menu => {
+if (!menu.classList.contains('hidden')) {
+menu.classList.add('hidden');
+}
+});
+});
+});
+</script>
+</body>
+</html>
